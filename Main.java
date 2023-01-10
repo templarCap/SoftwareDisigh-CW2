@@ -2,14 +2,17 @@ import java.io.*;
 import java.util.*;
 import java.lang.Exception;
 import java.util.concurrent.TimeUnit;
-import java.util.zip.DataFormatException;
 
 public class Main {
+    /**
+     * Method starting program with repeat.
+     * @param args For complete from console.
+     */
     public static void main(String[] args) {
         String finish;
 
         do {
-            startMenu();
+            controlMenu();
             System.out.println("Print esc to exit. Other input to repeat.");
             Scanner in = new Scanner(System.in);
             finish = in.nextLine();
@@ -18,14 +21,17 @@ public class Main {
         System.out.println("Program is finish. Thank you!");
     }
 
-    private static void startMenu() {
+    /**
+     * Method control program, input, work, output.
+     */
+    private static void controlMenu() {
         System.out.print("Hi! Input folder path: ");
 
         Scanner in = new Scanner(System.in);
         String path = in.nextLine();
         ArrayList<File> fileList = new ArrayList<>();
 
-        GraphUseFiles graphFiles = makeGraph(path, fileList);
+        MyGraph graphFiles = makeGraph(path, fileList);
         ArrayList<Integer> sortedFilesNumber = topSort(graphFiles);
         if (sortedFilesNumber == null) {
             return;
@@ -44,6 +50,11 @@ public class Main {
         }
     }
 
+    /**
+     * Method to get menu choose from user.
+     * @param in Stream of current input stream.
+     * @return Choosing user menu command.
+     */
     private static int getMenuNumber(Scanner in) {
         int menuNumber = 0;
         boolean isCorrectMenuNumber = true;
@@ -68,36 +79,45 @@ public class Main {
         return menuNumber;
     }
 
+    /**
+     * Method to print result in console.
+     * @param sortedFilesNumber Result sorting number files.
+     * @param fileList Files numbers to get interconnection.
+     */
     private static void consolePrint(ArrayList<Integer> sortedFilesNumber, ArrayList<File> fileList) {
         for (int elem : sortedFilesNumber) {
-            writeInConsole(fileList, elem);
+            writeInConsole(fileList.get(elem));
         }
     }
 
-    private static void writeInConsole(ArrayList<File> fileList, int elem) {
+    /**
+     * Method write answer in console from one file.
+     * @param add File to add in console output.
+     */
+    private static void writeInConsole(File add) {
         boolean correctWrite = false;
         do {
 
             try {
-                BufferedReader fin = new BufferedReader(new FileReader(fileList.get(elem)));
+                BufferedReader fin = new BufferedReader(new FileReader(add));
                 String line;
                 while ((line = fin.readLine()) != null) {
                     System.out.println(line);
                 }
                 correctWrite = true;
             } catch (FileNotFoundException ex) {
-                System.out.println(fileList.get(elem).getAbsoluteFile() + " was used, " +
+                System.out.println(add.getAbsoluteFile() + " was used, " +
                                    "but is not exist now. This file will be missed in output!");
                 break;
             } catch (IOException ex) {
-                System.out.println(fileList.get(elem).getAbsoluteFile() + " was used, " +
+                System.out.println(add.getAbsoluteFile() + " was used, " +
                                    "but isn't readable for now. Maybe file is open. " +
                                    "Please get file available! Program wait for 25 seconds.");
 
                 try {
                     TimeUnit.SECONDS.sleep(25);
                 } catch (InterruptedException interEx) {
-                    System.out.println(fileList.get(elem).getAbsoluteFile() + " was used, " +
+                    System.out.println(add.getAbsoluteFile() + " was used, " +
                                        "but is not readable for now. You interrupt waiting. " +
                                        "This file will be missed in output!");
                     break;
@@ -108,6 +128,11 @@ public class Main {
         } while (!correctWrite);
     }
 
+    /**
+     * Method to print result in user file.
+     * @param sortedFilesNumber Result sorting number files.
+     * @param fileList Files numbers to get interconnection.
+     */
     private static void filePrint(ArrayList<Integer> sortedFilesNumber, ArrayList<File> fileList) {
         BufferedWriter fileOutput = getBufferedWriter();
 
@@ -120,6 +145,10 @@ public class Main {
         System.out.println("Write in file finish with success!");
     }
 
+    /**
+     * Method to get output file from user.
+     * @return Output stream to write.
+     */
     private static BufferedWriter getBufferedWriter() {
         System.out.print("Print file output path: ");
 
@@ -141,6 +170,11 @@ public class Main {
         return fileOutput;
     }
 
+    /**
+     * Method add current file in output file.
+     * @param fileOutput Stream of output file.
+     * @param add File to add in output file.
+     */
     private static void addInFile(BufferedWriter fileOutput, File add) {
         boolean isCorrectWrite = false;
         do {
@@ -162,7 +196,7 @@ public class Main {
                                    "Please get file available! Program wait for 25 seconds.");
 
                 try {
-                    TimeUnit.SECONDS.sleep(25);
+                    TimeUnit.SECONDS.sleep(25); // Wait fix.
                 } catch (InterruptedException inEx) {
                     System.out.println(add.getAbsoluteFile() + " was used, " +
                                        "but is not readable for now. Interrupt was missed. " +
@@ -175,6 +209,10 @@ public class Main {
         } while (!isCorrectWrite);
     }
 
+    /**
+     * Method to close stream file to write.
+     * @param fileOutput stream of output file.
+     */
     private static void closeBufferedWriter(BufferedWriter fileOutput) {
         boolean isCloseWriteFile = false;
         do {
@@ -187,7 +225,7 @@ public class Main {
                         "Program wait for 15 seconds.");
 
                 try {
-                    TimeUnit.SECONDS.sleep(15);
+                    TimeUnit.SECONDS.sleep(15); // Wait fix.
                 } catch (InterruptedException interEx) {
                     System.out.println("File to write can't close. Program will not write in file!");
                     break;
@@ -198,12 +236,18 @@ public class Main {
         } while (!isCloseWriteFile);
     }
 
-    private static GraphUseFiles makeGraph(String basePath, ArrayList<File> fileList) {
+    /**
+     * Method make graph from base directory.
+     * @param basePath Path of base directory.
+     * @param fileList Lists of all file in directory.
+     * @return Graph make on current directory.
+     */
+    private static MyGraph makeGraph(String basePath, ArrayList<File> fileList) {
         File baseFile = new File(basePath);
 
         getAllFiles(baseFile, fileList);
         Map<File, Integer> fileNumber = new HashMap<>();
-        GraphUseFiles graphFile = new GraphUseFiles();
+        MyGraph graphFile = new MyGraph();
 
         for (int i = 0; i < fileList.size(); ++i) {
             fileNumber.put(fileList.get(i), i);
@@ -217,14 +261,19 @@ public class Main {
         return graphFile;
     }
 
-    private static void getAllFiles(File curentFile, ArrayList<File> fileList) {
-        if (!curentFile.isDirectory()) {
+    /**
+     * Method with recursion add all files in this directory and go downer in recursion.
+     * @param currentFile Directory to add files.
+     * @param fileList Lists of all file in directory.
+     */
+    private static void getAllFiles(File currentFile, ArrayList<File> fileList) {
+        if (!currentFile.isDirectory()) {
             System.out.println("There is not directory to open.");
             return;
         }
 
         try {
-            for (File elem : Objects.requireNonNull(curentFile.listFiles())) {
+            for (File elem : Objects.requireNonNull(currentFile.listFiles())) {
                 if (elem.isDirectory()) {
                     getAllFiles(elem, fileList);
                 } else {
@@ -232,53 +281,66 @@ public class Main {
                 }
             }
         } catch (NullPointerException nullPointerEx) {
-            System.out.println("Directory " + curentFile.getName() + " is empty!");
+            System.out.println("Directory " + currentFile.getName() + " is empty!");
         }
     }
 
-    private static void addFileEdges(GraphUseFiles graphFile, File curentFile, Integer id,
-                             Map<File, Integer> fileNumber, String basePath) {
+    /**
+     * Method to add all interconnection in files.
+     * @param graphFile Graph on current directory.
+     * @param currentFile Directory to add files.
+     * @param id Number of using File.
+     * @param fileNumber Map from number to file in directory.
+     * @param basePath Path of base directory.
+     */
+    private static void addFileEdges(MyGraph graphFile, File currentFile, Integer id,
+                                     Map<File, Integer> fileNumber, String basePath) {
         boolean correctRead = false;
         do {
 
             try {
-                BufferedReader br = new BufferedReader(new FileReader(curentFile));
+                BufferedReader br = new BufferedReader(new FileReader(currentFile));
                 String line;
                 while ((line = br.readLine()) != null) {
                     if (line.startsWith("require '") && line.endsWith("'")) {
                         File require = new File(basePath + "\\" +
-                                line.substring(9, line.length() - 1));
+                                line.substring(9, line.length() - 1)); // Get small path.
                         graphFile.addEdge(id, fileNumber.get(require));
                     }
                 }
                 correctRead = true;
             } catch (FileNotFoundException ex) {
-                System.out.println(curentFile.getAbsoluteFile() + " was used, but is not exist now. " +
+                System.out.println(currentFile.getAbsoluteFile() + " was used, but is not exist now. " +
                         "This file will be missed in read!");
                 break;
             } catch (IOException ex) {
-                System.out.println(curentFile.getAbsoluteFile() + " was used, " +
+                System.out.println(currentFile.getAbsoluteFile() + " was used, " +
                         "but is not readable for now. Maybe file is open. " +
                         "Please get file available! Program wait for 25 seconds.");
 
                 try {
-                    TimeUnit.SECONDS.sleep(25);
+                    TimeUnit.SECONDS.sleep(25); // Wait for fix.
                 } catch (InterruptedException interEx) {
-                    System.out.println(curentFile.getAbsoluteFile() + " was used, " +
+                    System.out.println(currentFile.getAbsoluteFile() + " was used, " +
                             "but is not readable for now. Interrupt was missed. " +
                             "This file will be missed in read!");
                     break;
                 }
 
             }
-            
+
         } while (!correctRead);
     }
 
-    private static ArrayList<Integer> topSort(GraphUseFiles graphFile) {
-        try {
+    /**
+     * Method to get topological sorted graph.
+     * @param graphFile Graph on current directory.
+     * @return List of topological sorted numbers files, null if graph has cycle.
+     */
+    private static ArrayList<Integer> topSort(MyGraph graphFile) {
+        if (!graphFile.isCycle()) {
             return graphFile.topSort();
-        } catch (DataFormatException ex) {
+        } else {
             System.out.println("Directory has cycle requirements. This try will be ignored!");
             return null;
         }
